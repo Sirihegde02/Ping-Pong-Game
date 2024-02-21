@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang = "en">
+
+<!--In this game we will be using local storage, which is 
+    a kind of online storage that allows you to store and access data in your browser.-->
+
+<!--The data in local storage does not have an expiration date. Data is saved on local storage as a 
+    'key-value' pair, often known as a data item. The 'keys' and 'values' that are stored are always 
+    strings. Even integers and other primitive values will be transformed to strings.-->
+
+<!--To store data in the local storage, use setItem("key", "value"), to get data 
+    from the local storage, use getItem("key"), to remove data from the local
+    storage, use removeItem("key"), and to replace data just call setItem() with
+    the new data (it will overwrite the existing data)-->
+
+<head>
+    <meta charset="UTF-8"> <!--this tag is compatible for most browsers-->
+    <title>The Game of Pong</title>
+    <style>
+        /*bodyDesign is a class, I made it a 
+        class so that different pages could have different body designs*/
+        .bodyDesign{ 
+            margin: auto;
+            border: solid 100% #F00;
+            font-size: 14px;
+            font-family:Arial, Helvetica, sans-serif;
+            background-color: #000000;
+        }
+        /* #countDown{
+            /* font-family: 'Arial' sans-serif; 
+            margin: 0; */
+            /* background-color: black;
+            display: flex;
+            margin: 0;
+            width: 50%;
+            height: 50%;
+            font-size: 50px;
+            color: white;
+            justify-content: center;
+            align-items: center;
+        }  */
+        canvas{
+            display: block;
+        }
+        #container{
+            position: relative;
+        }
+        #ball{
+            /*stuff on the left are called properties*/
+            height: 15px;
+            width: 15px;
+            position: fixed;
+            border-radius: 50%;
+            background-color: white;
+            left: 100%;
+            top: 100%;
+        }
+        #bar-1{
+            height: 3%;
+            display: flex;
+            justify-content: center;
+            width: 10%;
+            background-color: royalblue;
+            border-radius: 5%;
+            position: fixed;
+            font-weight: bold;
+            top:0%;
+            left:25%;
+        }
+        #bar-2{
+            height: 3%;
+            width: 10%;
+            background-color: red;
+            border-radius: 5%;
+            position: fixed;
+            display: flex;
+            justify-content: center;
+            font-weight: bold;
+            bottom: 0%;
+            left:25%;
+    }
+    </style>
+    <!-- if I hadn't added the CSS here, I should've used the link tag-->
+</head>
+
+<body class = "bodyDesign"> 
+    <div id = "container">
+        <div id = "ball"></div> <!--creating an id called ball-->
+        <div id = "bar-1">Bar 1</div>
+        <div id = "bar-2">Bar 2</div>
+    </div>
+
+    <p id = "countDown"></p>
+
+<script> //If I hadn't added javascript code here, I should've
+    //used type and src inside the script tag
+    "use strict"; //means we are using javascript, should always be declared at beginning of script tag
+
+    //Declaring the variables,
+    var bar1 = document.getElementById("bar-1");
+    //This finds the html elements by element's id in the document.
+    //Similarly document.getElementsByTagName(name) and document.getElementByClassName(name)
+    //also work in the same way
+    var bar2 = document.getElementById("bar-2");
+    var ball = document.getElementById("ball");
+    var movement = 20;
+
+    const thisBar1 = "Bar-1";
+    const thisBar2 = "Bar-2";
+    const storeName = "abc";
+    const storeScore = 123;
+
+    let whichBar;
+    let moveX = 2; //Can I change this to make it faster?
+    let moveY = 2;
+    let ballMoving;
+    let border = 12;
+    let score;
+    let highScore;
+    let gameStart = false; //Game hasn't started yet
+
+    localStorage.setItem(storeScore, "null"); //setItem(key, value)
+    localStorage.setItem(storeName, "null"); //storeName is the key and its value is null
+
+    (function(){
+        highScore = localStorage.getItem(storeScore); //The highscore is the score you stored.
+        whichBar = localStorage.getItem(storeName); //sets whichBar to the winning bar's name 
+        if(whichBar === "null" || highScore === "null"){ //It goes to null when you refresh the page too
+            alert("Hey there! This is your first game"); //alerts display page messages
+            highScore = 0;
+            whichBar = thisBar1; //Starts the game from bar-1
+            var r = confirm("Are you 2 players?");
+            if (r == true)
+            { document.addEventListener('keydown', function(event){
+            if(event.keyCode == 68){//D key is 68
+                if(parseInt(bar1.style.left)<(window.innerWidth - bar1.offsetWidth - border)){
+                bar1.style.left = parseInt(bar1.style.left) + movement + 'px';
+                // bar2.style.left = bar1.style.left;
+                };
+            };
+
+            if(event.keyCode == 39){//right arrow is 39
+                if(parseInt(bar2.style.left)<(window.innerWidth - bar2.offsetWidth - border)){
+                bar2.style.left = parseInt(bar2.style.left) + movement + 'px';
+                // bar2.style.left = bar1.style.left;
+                };
+            };
+
+            if(event.keyCode == 65){//A key is 65
+                if(parseInt(bar1.style.left)>border){
+                bar1.style.left = parseInt(bar1.style.left) - movement + 'px';
+                // bar2.style.left = bar1.style.left;
+                };
+            };
+
+            if(event.keyCode == 37){//left arrow is 37
+                if(parseInt(bar2.style.left)>border){
+                bar2.style.left = parseInt(bar2.style.left) - movement + 'px';
+                // bar2.style.left = bar1.style.left;
+                };
+            };
+
+            if(event.keyCode == 13){ //enter-key code is 13
+            if(!gameStart){
+            gameStart = true; //The game is started
+                let ballRect = ball.getBoundingClientRect();
+                let ballX = ballRect.x; //x is the x-coordinate of the ball
+                let ballY = ballRect.y; //y is the y-coordinate of the ball
+                let ballDia = ballRect.width;
+                let bar1Height=bar1.offsetHeight;
+                let bar2Height=bar2.offsetHeight;
+                let bar1Width=bar2.offsetWidth;
+                let bar2Width=bar2.offsetWidth;
+                ballMoving = setInterval(function(){
+            
+                let bar1X = bar1.getBoundingClientRect().x;
+                let bar2X = bar2.getBoundingClientRect().x;
+                let ballCentre = ballX +ballDia/2;
+                ballX += moveX;
+                ballY += moveY;
+                ball.style.left = ballX+"px";
+                ball.style.top=ballY+"px";
+                if(((ballX+ballDia)>window.innerWidth) || (ballX<0)){
+                    moveX=-moveX;
+                }
+                if(ballY <= bar1Height){
+                    moveY =- moveY;
+                    score++;
+                    if((ballCentre<bar1X) || (ballCentre>(bar1X+bar1Width))){
+                        dataStoring(score,thisBar2);
+                    }
+                }
+                if((ballY+ballDia)>=(window.innerHeight-bar2Height)){
+                    moveY=-moveY;
+                    score++;
+                    if((ballCentre < bar2X) || (ballCentre > (bar2X + bar2Width))){
+                        dataStoring(score,thisBar1);
+                    }
+                }  
+            }, 10);
+        }}})}      
+            else {document.addEventListener('keydown', function(event){
+            if(event.keyCode == 68 || event.keyCode == 39){//right arrow is 39 and D key is 68
+                if(parseInt(bar1.style.left)<(window.innerWidth - bar1.offsetWidth - border)){
+                bar1.style.left = parseInt(bar1.style.left) + movement + 'px';
+                bar2.style.left = bar1.style.left;
+                };
+            };
+
+            if(event.keyCode == 65 || event.keyCode == 37){//left arrow is 37 and A key is 65
+                if(parseInt(bar1.style.left)>border){
+                bar1.style.left = parseInt(bar1.style.left) - movement + 'px';
+                bar2.style.left = bar1.style.left;
+                };
+            };
+            if(event.keyCode == 13){ //enter-key code is 13
+            if(!gameStart){
+                gameStart = true; //The game is started
+                //count down code
+                //  const startingSeconds = 3;
+                // let time = startingSeconds;
+                // const countDownEl = document.getElementById('countDown');
+
+                // setInterval(updateCountDown, 1000);
+
+                // function updateCountDown(){
+                //     if(time != 0){
+                //     const seconds = time;
+                //     countDownEl.innerHTML = seconds;
+                //     time--;
+                //     }
+                // }
+
+                let ballRect = ball.getBoundingClientRect();
+                let ballX = ballRect.x; //x is the x-coordinate of the ball
+                let ballY = ballRect.y; //y is the y-coordinate of the ball
+                let ballDia = ballRect.width;
+                let bar1Height=bar1.offsetHeight;
+                let bar2Height=bar2.offsetHeight;
+                let bar1Width=bar2.offsetWidth;
+                let bar2Width=bar2.offsetWidth;
+                ballMoving = setInterval(function(){
+            
+                let bar1X = bar1.getBoundingClientRect().x;
+                let bar2X = bar2.getBoundingClientRect().x;
+                let ballCentre = ballX +ballDia/2;
+                ballX += moveX;
+                ballY += moveY;
+                ball.style.left = ballX+"px";
+                ball.style.top=ballY+"px";
+                if(((ballX+ballDia)>window.innerWidth) || (ballX<0)){
+                    moveX=-moveX;
+                }
+                if(ballY <= bar1Height){
+                    moveY =- moveY;
+                    score++;
+                    if((ballCentre<bar1X) || (ballCentre>(bar1X+bar1Width))){
+                        dataStoring(score,thisBar2);
+                    }
+                }
+                if((ballY+ballDia)>=(window.innerHeight-bar2Height)){
+                    moveY=-moveY;
+                    score++;
+                    if((ballCentre < bar2X) || (ballCentre > (bar2X + bar2Width))){
+                        dataStoring(score,thisBar1);
+                    }
+                }  
+                clearInterval(updateCountDown);
+            }, 10);
+            }}});}}
+        else { //If there is a whichBar and highScore value
+            alert(whichBar + " has maximum score of " + highScore * 100); //Another message display
+        }
+        gameReset(whichBar); //Whatever it is, it's gonna start a game using this function, starting from the whichBar
+    })();
+
+    function gameReset(barName){
+        bar1.style.left = ((window.innerWidth - bar1.offsetWidth)/2) + "px";
+        bar2.style.left = ((window.innerWidth - bar2.offsetWidth)/2) + "px";
+        ball.style.left = ((window.innerWidth - ball.offsetWidth)/2) + "px";
+
+        if(barName == thisBar1){
+            ball.style.top = bar2.getBoundingClientRect().y - bar2.getBoundingClientRect().height + "px";
+            moveY = -2;
+        }
+
+        else if(barName == thisBar2){
+            ball.style.top = bar1.getBoundingClientRect().height + "px";
+            moveY = 2;
+        }
+
+        score = 0;
+        gameStart = false;
+    }
+        
+    //NOTES:
+    //1. KeyBoardEvent.keyCode was replaced by keyBoardEvent.key because keycode property has been deprecated.
+    //2. parseInt() function parses a string argument and returns an integer of the specified
+    //   radix (i.e the number of unique digits including zero)
+    //3. .style.left property specifies the left position of the positioned element.
+    //   (a positioned element is an element with the position property set to relative, absolute or fixed).
+    //4, Use alert("") to the make the page message.
+    //5. 'keyup' -> Event fired when a key is released on the keyboard
+    //   'keydown' -> Event fired when any key is pressed on the keyboard
+    //   'keypress' -> Event fired when a key that produces a character value
+    //6. getBoundingClientRect() -> Returns the size of an element and its position relative to the viewport.
+    //   This method returns the DOMRect object with eight properties: left, top, right, bottom, x, y, width, height.
+    //7. offSetHeight property -> HTML DOM element - returns the viewable height of an element in px, including padding, 
+    //   border and scrollbar, but not the margin.
+    //8. Difference between offSetHeight and clientHeight is clientHeight excludes border height while offSetHeight
+    //   includes. So offsetHeight is more than the clientHeight. Same with offSetWidth and clientWidth.
+
+    function dataStoring(scoreObtained, winningBar){
+        if(score > highScore){
+            highScore = score;
+            localStorage.setItem(storeName, winningBar);
+            localStorage.setItem(storeScore, highScore);
+        }
+        clearInterval(ballMoving);
+        gameReset(winningBar);
+
+        alert(winningBar + " wins with the score of " + (scoreObtained * 100) + ". Max Score is: " + (highScore * 100));
+    }
+
+</script>
+</body>
+
+
+</html>
